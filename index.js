@@ -15,7 +15,7 @@ if (!fs.existsSync(TEMP_DIRECTORY)) {
 // Читаем исходный файл по частям, сортируем каждую из них, записываем во временные файлы
 async function splitAndSortChunks() {
     try {
-        const readStream = fs.createReadStream(INPUT_FILE, { highWaterMark: CHUNK_SIZE });
+        const readStream = fs.createReadStream(INPUT_FILE, { encoding: 'utf8', highWaterMark: CHUNK_SIZE });
         const readline = readline.createInterface({ input: readStream, crlfDelay: Infinity });
 
         let currentChunk = [];
@@ -28,7 +28,7 @@ async function splitAndSortChunks() {
         for await (const line of readline) {
             currentChunk.push(line);
             if (Buffer.byteLength(currentChunk.join('\n'), 'utf8') >= CHUNK_SIZE) {
-                currentChunk.sort();
+                currentChunk.sort((a, b) => a.localeCompare(b));
                 const tempFilePath = path.join(TEMP_DIRECTORY, `chunk_${chunkIndex}.txt`);
                 try {
                     fs.writeFileSync(tempFilePath, currentChunk.join('\n'));
@@ -42,7 +42,7 @@ async function splitAndSortChunks() {
 
         // Проверяем, что все части обработаны
         if (currentChunk.length > 0) {
-            currentChunk.sort();
+            currentChunk.sort((a, b) => a.localeCompare(b));
             const tempFilePath = path.join(TEMP_DIRECTORY, `chunk_${chunkIndex}.txt`);
             try {
                 fs.writeFileSync(tempFilePath, currentChunk.join('\n'));
